@@ -20,7 +20,6 @@ if (!isTestEnvironment) {
 export const myProvider = isTestEnvironment
   ? (() => {
       const {
-        artifactModel,
         chatModel,
         reasoningModel,
         titleModel,
@@ -30,7 +29,6 @@ export const myProvider = isTestEnvironment
           "chat-model": chatModel,
           "chat-model-reasoning": reasoningModel,
           "title-model": titleModel,
-          "artifact-model": artifactModel,
         },
       });
     })()
@@ -42,6 +40,5 @@ export const myProvider = isTestEnvironment
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
         "title-model": google("gemini-2.5-flash-lite"),
-        "artifact-model": google("gemini-2.5-flash"),
       },
     });

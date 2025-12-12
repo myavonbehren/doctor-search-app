@@ -17,7 +17,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useArtifactSelector } from "@/hooks/use-artifact";
 import { useAutoResume } from "@/hooks/use-auto-resume";
 import { useChatVisibility } from "@/hooks/use-chat-visibility";
 import type { Vote } from "@/lib/db/schema";
@@ -157,7 +156,6 @@ export function Chat({
   );
 
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
 
   useAutoResume({
     autoResume,
@@ -177,7 +175,6 @@ export function Chat({
 
         <Messages
           chatId={id}
-          isArtifactVisible={isArtifactVisible}
           isReadonly={isReadonly}
           messages={messages}
           regenerate={regenerate}

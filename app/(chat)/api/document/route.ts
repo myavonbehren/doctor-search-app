@@ -55,11 +55,8 @@ export async function POST(request: Request) {
     return new ChatSDKError("not_found:document").toResponse();
   }
 
-  const {
-    content,
-    title,
-    kind,
-  }: { content: string; title: string; kind: "text" } = await request.json();
+  const { content, title }: { content: string; title: string } =
+    await request.json();
 
   const documents = await getDocumentsById({ id });
 
@@ -75,7 +72,6 @@ export async function POST(request: Request) {
     id,
     content,
     title,
-    kind,
     userId: session.user.id,
   });
 

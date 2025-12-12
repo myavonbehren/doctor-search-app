@@ -14,7 +14,6 @@ import {
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import type { ArtifactKind } from "@/components/artifact";
 import type { VisibilityType } from "@/components/visibility-selector";
 import { ChatSDKError } from "../errors";
 import type { AppUsage } from "../usage";
@@ -311,13 +310,11 @@ export async function getVotesByChatId({ id }: { id: string }) {
 export async function saveDocument({
   id,
   title,
-  kind,
   content,
   userId,
 }: {
   id: string;
   title: string;
-  kind: ArtifactKind;
   content: string;
   userId: string;
 }) {
@@ -327,7 +324,6 @@ export async function saveDocument({
       .values({
         id,
         title,
-        kind,
         content,
         userId,
         createdAt: new Date(),

@@ -25,8 +25,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { ChatMessage } from "@/lib/types";
-import { type ArtifactKind, artifactDefinitions } from "./artifact";
-import type { ArtifactToolbarItem } from "./create-artifact";
 import { ArrowUpIcon, StopIcon, SummarizeIcon } from "./icons";
 
 type ToolProps = {
@@ -259,7 +257,7 @@ export const Tools = ({
   sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
   isAnimating: boolean;
   setIsToolbarVisible: Dispatch<SetStateAction<boolean>>;
-  tools: ArtifactToolbarItem[];
+  tools: { description: string; icon: ReactNode; onClick: () => void }[];
 }) => {
   const [primaryTool, ...secondaryTools] = tools;
 
@@ -308,7 +306,6 @@ const PureToolbar = ({
   status,
   stop,
   setMessages,
-  artifactKind,
 }: {
   isToolbarVisible: boolean;
   setIsToolbarVisible: Dispatch<SetStateAction<boolean>>;
@@ -316,7 +313,6 @@ const PureToolbar = ({
   sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
   stop: UseChatHelpers<ChatMessage>["stop"];
   setMessages: UseChatHelpers<ChatMessage>["setMessages"];
-  artifactKind: ArtifactKind;
 }) => {
   const toolbarRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
@@ -360,19 +356,18 @@ const PureToolbar = ({
     }
   }, [status, setIsToolbarVisible]);
 
-  const artifactDefinition = artifactDefinitions.find(
-    (definition) => definition.kind === artifactKind
-  );
-
-  if (!artifactDefinition) {
-    throw new Error("Artifact definition not found!");
-  }
-
-  const toolsByArtifactKind = artifactDefinition.toolbar;
-
-  if (toolsByArtifactKind.length === 0) {
-    return null;
-  }
+  const tools = [
+    {
+      description: "Summarize",
+      icon: <SummarizeIcon />,
+      onClick: () => {
+        sendMessage({
+          role: "user",
+          parts: [{ type: "text", text: "Summarize the following text: " }],
+        });
+      },
+    },
+  ];
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -390,7 +385,7 @@ const PureToolbar = ({
               : {
                   opacity: 1,
                   y: 0,
-                  height: toolsByArtifactKind.length * 50,
+                  height: tools.length * 50,
                   transition: { delay: 0 },
                   scale: 1,
                 }
@@ -453,7 +448,7 @@ const PureToolbar = ({
             sendMessage={sendMessage}
             setIsToolbarVisible={setIsToolbarVisible}
             setSelectedTool={setSelectedTool}
-            tools={toolsByArtifactKind}
+            tools={tools}
           />
         )}
       </motion.div>
@@ -466,9 +461,6 @@ export const Toolbar = memo(PureToolbar, (prevProps, nextProps) => {
     return false;
   }
   if (prevProps.isToolbarVisible !== nextProps.isToolbarVisible) {
-    return false;
-  }
-  if (prevProps.artifactKind !== nextProps.artifactKind) {
     return false;
   }
 
