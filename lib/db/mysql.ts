@@ -1,5 +1,18 @@
 import mysql from "mysql2/promise";
 
+// Load environment variables for standalone scripts
+// Next.js automatically loads .env.local, but standalone scripts need this
+if (!process.env.NEXT_RUNTIME && !process.env.MYSQL_HOST) {
+  try {
+    // Use require for sync loading to avoid top-level await
+    const dotenv = require("dotenv");
+    dotenv.config({ path: ".env.local" });
+  } catch (error) {
+    // dotenv might not be available in some environments, that's ok
+    console.error("Error loading environment variables:", error);
+  }
+}
+
 // using a pool bc it reuses connections instead of creating a new one for each query (faster) and more efficient
 // important ^^^
 const pool = mysql.createPool({
@@ -20,11 +33,13 @@ export async function executePhysicianQuery(
   params?: any[]
 ): Promise<any[]> {
   try {
-    const [rows] = await pool.execute(query, params);
+    const [rows] = await pool.query(query, params || []);
     return rows as any[];
   } catch (error) {
     console.error("MySQL query error:", error);
-    throw new Error("Failed to query physician database");
+    console.error("Query was:", query);
+    console.error("Params were:", params);
+    throw error; // Re-throw the original error for better debugging
   }
 }
 
