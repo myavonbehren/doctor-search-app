@@ -306,6 +306,37 @@ export async function POST(request: Request) {
       return new ChatSDKError("bad_request:activate_gateway").toResponse();
     }
 
+    // Check for Google API key errors
+    if (
+      error instanceof Error &&
+      (error.message?.includes("API key") ||
+        error.message?.includes("authentication") ||
+        error.message?.includes("401") ||
+        error.message?.includes("403") ||
+        error.message?.includes("GOOGLE_GENERATIVE_AI_API_KEY") ||
+        error.message?.toLowerCase().includes("invalid api key"))
+    ) {
+      console.error("Google API authentication error:", error, { vercelId });
+      return new ChatSDKError(
+        "unauthorized:api",
+        "Invalid or missing Google API key. Please check your GOOGLE_GENERATIVE_AI_API_KEY environment variable."
+      ).toResponse();
+    }
+
+    // Check for Google API rate limit errors
+    if (
+      error instanceof Error &&
+      (error.message?.includes("429") ||
+        error.message?.toLowerCase().includes("rate limit") ||
+        error.message?.toLowerCase().includes("quota"))
+    ) {
+      console.error("Google API rate limit error:", error, { vercelId });
+      return new ChatSDKError(
+        "rate_limit:api",
+        "Google API rate limit exceeded. Please try again later."
+      ).toResponse();
+    }
+
     console.error("Unhandled error in chat API:", error, { vercelId });
     return new ChatSDKError("offline:chat").toResponse();
   }
