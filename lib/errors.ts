@@ -84,6 +84,12 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
     case "bad_request:api":
       return "The request couldn't be processed. Please check your input and try again.";
 
+    case "unauthorized:api":
+      return "API authentication failed. Please check your API key configuration.";
+
+    case "rate_limit:api":
+      return "API rate limit exceeded. Please try again later.";
+
     case "bad_request:activate_gateway":
       return "AI Gateway requires a valid credit card on file to service requests. Please visit https://vercel.com/d?to=%2F%5Bteam%5D%2F%7E%2Fai%3Fmodal%3Dadd-credit-card to add a card and unlock your free credits.";
 
