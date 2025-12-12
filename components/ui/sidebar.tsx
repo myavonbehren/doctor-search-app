@@ -3,7 +3,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeft } from "lucide-react";
 import { Slot as SlotPrimitive } from "radix-ui";
-import * as React from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -411,7 +411,7 @@ const SidebarContent = React.forwardRef<
   return (
     <div
       className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        "group-data-[collapsible=icon]:overflow-hidde overflow-auto-hidden flex min-h-0 flex-1 flex-col gap-2",
         className
       )}
       data-sidebar="content"
