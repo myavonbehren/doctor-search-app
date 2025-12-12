@@ -8,7 +8,7 @@ AI assistant that turns natural-language care requests into structured physician
 ## Tech Stack
 - Next.js 14 (App Router) + React Server Components
 - TypeScript with strict typing; shadcn/ui + Tailwind CSS for UI
-- Vercel AI SDK (tool calls, structured output) with Gemini/Groq backends
+- Vercel AI SDK (tool calls, structured output) with Gemini backends
 - MySQL (Drizzle ORM, migrations) for CMS provider dataset
 - Auth.js for authentication
 - Playwright + Jest-like tests for e2e and integration
