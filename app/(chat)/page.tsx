@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Chat } from "@/components/chat";
-import { DataStreamHandler } from "@/components/data-stream-handler";
+
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 import { generateUUID } from "@/lib/utils";
 import { auth } from "../(auth)/auth";
@@ -29,33 +29,27 @@ async function NewChatPage() {
 
   if (!modelIdFromCookie) {
     return (
-      <>
-        <Chat
-          autoResume={false}
-          id={id}
-          initialChatModel={DEFAULT_CHAT_MODEL}
-          initialMessages={[]}
-          initialVisibilityType="private"
-          isReadonly={false}
-          key={id}
-        />
-        <DataStreamHandler />
-      </>
-    );
-  }
-
-  return (
-    <>
       <Chat
         autoResume={false}
         id={id}
-        initialChatModel={modelIdFromCookie.value}
+        initialChatModel={DEFAULT_CHAT_MODEL}
         initialMessages={[]}
         initialVisibilityType="private"
         isReadonly={false}
         key={id}
       />
-      <DataStreamHandler />
-    </>
+    );
+  }
+
+  return (
+    <Chat
+      autoResume={false}
+      id={id}
+      initialChatModel={modelIdFromCookie.value}
+      initialMessages={[]}
+      initialVisibilityType="private"
+      isReadonly={false}
+      key={id}
+    />
   );
 }
