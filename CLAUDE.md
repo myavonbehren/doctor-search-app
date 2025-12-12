@@ -23,7 +23,7 @@ This prompt sets the stage for the LLM's behavior and constraints.
 >
 > **Database Context & Schema:**
 >
->   * **Primary Tables:** `services_by_physician`, `patient_attribute_by_physician`
+>   * **Primary Tables:** `provider_services`, `providers`
 >   * **Key Fields:**
 >       * `Rndrng_Prvdr_Type`: Provider specialty (e.g., 'Cardiologist').
 >       * `Rndrng_Prvdr_City`, `Rndrng_Prvdr_State_Abrvtn`, `Rndrng_Prvdr_Zip5`: Location filters.
@@ -60,7 +60,7 @@ This prompt is sent to the LLM with the user's input. The LLM must choose to gen
 >
 > ```json
 > {
->   "sql_query": "SELECT T1.Rndrng_Prvdr_First_Name, T1.Rndrng_Prvdr_Last_Org_Name, T1.Rndrng_Prvdr_Crdntls, T1.Rndrng_Prvdr_St1, T1.Rndrng_Prvdr_City, T1.Rndrng_Prvdr_State_Abrvtn, T1.HCPCS_Desc FROM services_by_physician T1 WHERE T1.Rndrng_Prvdr_Type LIKE '%Cardiologist%' AND T1.Rndrng_Prvdr_City LIKE '%Chicago%' AND T1.HCPCS_Desc LIKE '%echocardiogram%' LIMIT 5;"
+>   "sql_query": "SELECT T1.Rndrng_Prvdr_First_Name, T1.Rndrng_Prvdr_Last_Org_Name, T1.Rndrng_Prvdr_Crdntls, T1.Rndrng_Prvdr_St1, T1.Rndrng_Prvdr_City, T1.Rndrng_Prvdr_State_Abrvtn, T1.HCPCS_Desc FROM provider_services T1 WHERE T1.Rndrng_Prvdr_Type LIKE '%Cardiologist%' AND T1.Rndrng_Prvdr_City LIKE '%Chicago%' AND T1.HCPCS_Desc LIKE '%echocardiogram%' LIMIT 5;"
 > }
 > ```
 >
@@ -94,7 +94,7 @@ The overall architecture follows a standard RAG pattern, integrating the fronten
 
 The database is large. Query optimization is paramount for a good user experience.
 
-  * **Thoughtful Joins:** Only join the two datasets (`services_by_physician`, `patient_attribute_by_physician`) when demographic/condition data (e.g., `Bene_CC_Diabetes_Pct`) is explicitly requested. Otherwise, query a single table for speed.
+  * **Thoughtful Joins:** Only join the two datasets (`provider_services`, `providers`) when demographic/condition data (e.g., `Bene_CC_Diabetes_Pct`) is explicitly requested. Otherwise, query a single table for speed.
   * **Indexing Strategy:** Ensure indexes exist on:
       * `Rndrng_NPI` (for joins)
       * `Rndrng_Prvdr_Type`
@@ -117,3 +117,220 @@ If the generated SQL query returns **zero results**, the backend should trigger 
   * **Second-Pass Prompt:**
     > **Task:** The previous search query based on the user's request returned zero results. Suggest one concrete way to broaden or adjust the user's original request to increase the chance of finding a provider (e.g., remove the city filter, or change the procedure to a broader one).
     > **Output:** A concise suggestion for the user. (e.g., "I couldn't find a Cardiologist who performs **echocardiograms** in **Chicago**. Would you like to search for a Cardiologist in the entire **Illinois** area instead?")
+
+
+    ERRORS:
+     GET /api/vote?chatId=bb41ae62-63af-42cc-a8ed-bcee85c72768 200 in 149ms (compile: 1713µs, proxy.ts: 4ms, render: 144ms)
+Executing physician search: {
+  specialty: 'Cardiologist',
+  city: 'Chicago',
+  state: undefined,
+  procedure: undefined,
+  limit: 5
+}
+Generated query: SELECT DISTINCT
+          rndrng_prvdr_first_name,
+          rndrng_prvdr_last_org_name,
+          rndrng_prvdr_crdntls,
+          rndrng_prvdr_st1,
+          rndrng_prvdr_city,
+          rndrng_prvdr_state_abrvtn,
+          rndrng_prvdr_zip5,
+          rndrng_prvdr_type,
+          hcpcs_desc,
+          rndrng_npi
+        FROM provider_services
+        WHERE rndrng_prvdr_type LIKE ? AND rndrng_prvdr_city LIKE ?
+        LIMIT ?
+Query params: [ '%Cardiologist%', '%Chicago%', 5 ]
+Params length: 3
+=== DEBUG TEST ===
+Test query: SELECT * FROM provider_services LIMIT ?
+Test params: [ 3 ]
+Test query ? count: 1
+Test params length: 1
+MySQL query error: Error: Incorrect arguments to mysqld_stmt_execute
+    at executePhysicianQuery (lib/db/mysql.ts:38:20)
+    at Object.execute (lib/ai/tools/search-physicians.ts:93:50)
+    at executeTool.next (<anonymous>)
+  36 |     // Use execute for prepared statements with params, query without params
+  37 |     const [rows] = params && params.length > 0
+> 38 |       ? await pool.execute(query, params)
+     |                    ^
+  39 |       : await pool.query(query);
+  40 |     return rows as any[];
+  41 |   } catch (error) { {
+  code: 'ER_WRONG_ARGUMENTS',
+  errno: 1210,
+  sql: 'SELECT DISTINCT\n' +
+    '          rndrng_prvdr_first_name,\n' +
+    '          rndrng_prvdr_last_org_name,\n' +
+    '          rndrng_prvdr_crdntls,\n' +
+    '          rndrng_prvdr_st1,\n' +
+    '          rndrng_prvdr_city,\n' +
+    '          rndrng_prvdr_state_abrvtn,\n' +
+    '          rndrng_prvdr_zip5,\n' +
+    '          rndrng_prvdr_type,\n' +
+    '          hcpcs_desc,\n' +
+    '          rndrng_npi\n' +
+    '        FROM provider_services\n' +
+    '        WHERE rndrng_prvdr_type LIKE ? AND rndrng_prvdr_city LIKE ?\n' +
+    '        LIMIT ?',
+  sqlState: 'HY000',
+  sqlMessage: 'Incorrect arguments to mysqld_stmt_execute'
+}
+Query was: SELECT DISTINCT
+          rndrng_prvdr_first_name,
+          rndrng_prvdr_last_org_name,
+          rndrng_prvdr_crdntls,
+          rndrng_prvdr_st1,
+          rndrng_prvdr_city,
+          rndrng_prvdr_state_abrvtn,
+          rndrng_prvdr_zip5,
+          rndrng_prvdr_type,
+          hcpcs_desc,
+          rndrng_npi
+        FROM provider_services
+        WHERE rndrng_prvdr_type LIKE ? AND rndrng_prvdr_city LIKE ?
+        LIMIT ?
+Params were: [ '%Cardiologist%', '%Chicago%', 5 ]
+Physician search error: Error: Incorrect arguments to mysqld_stmt_execute
+    at executePhysicianQuery (lib/db/mysql.ts:38:20)
+    at Object.execute (lib/ai/tools/search-physicians.ts:93:50)
+    at executeTool.next (<anonymous>)
+  36 |     // Use execute for prepared statements with params, query without params
+  37 |     const [rows] = params && params.length > 0
+> 38 |       ? await pool.execute(query, params)
+     |                    ^
+  39 |       : await pool.query(query);
+  40 |     return rows as any[];
+  41 |   } catch (error) { {
+  code: 'ER_WRONG_ARGUMENTS',
+  errno: 1210,
+  sql: 'SELECT DISTINCT\n' +
+    '          rndrng_prvdr_first_name,\n' +
+    '          rndrng_prvdr_last_org_name,\n' +
+    '          rndrng_prvdr_crdntls,\n' +
+    '          rndrng_prvdr_st1,\n' +
+    '          rndrng_prvdr_city,\n' +
+    '          rndrng_prvdr_state_abrvtn,\n' +
+    '          rndrng_prvdr_zip5,\n' +
+    '          rndrng_prvdr_type,\n' +
+    '          hcpcs_desc,\n' +
+    '          rndrng_npi\n' +
+    '        FROM provider_services\n' +
+    '        WHERE rndrng_prvdr_type LIKE ? AND rndrng_prvdr_city LIKE ?\n' +
+    '        LIMIT ?',
+  sqlState: 'HY000',
+  sqlMessage: 'Incorrect arguments to mysqld_stmt_execute'
+
+  DEBUG-LOGS:
+CHAT INPUT: I am looking for a cardiologist who can do an ultrasound in Bridgewater, NJ
+  [2025-12-12T06:03:15.067Z] === PHYSICIAN SEARCH START ===
+[TIMING] Query built in 1ms
+[PARAMS] Search criteria: {
+  specialty: 'Cardiologist',
+  city: undefined,
+  state: 'NJ',
+  procedure: 'ultrasound',
+  limit: 5
+}
+[SQL] Generated query: SELECT DISTINCT
+          rndrng_prvdr_first_name,
+          rndrng_prvdr_last_org_name,
+          rndrng_prvdr_crdntls,
+          rndrng_prvdr_st1,
+          rndrng_prvdr_city,
+          rndrng_prvdr_state_abrvtn,
+          rndrng_prvdr_zip5,
+          rndrng_prvdr_type,
+          hcpcs_desc,
+          rndrng_npi
+        FROM provider_services
+        WHERE LOWER(rndrng_prvdr_type) LIKE LOWER(?) AND UPPER(rndrng_prvdr_state_abrvtn) = UPPER(?) AND LOWER(hcpcs_desc) LIKE LOWER(?)
+        LIMIT ?
+[SQL] Params: [ '%Cardiologist%', 'NJ', '%ultrasound%', 5 ]
+[DB] Executing query at 2025-12-12T06:03:15.069Z...
+ GET /api/auth/session 200 in 33ms (compile: 16ms, proxy.ts: 11ms, render: 6ms)
+ GET /api/auth/session 200 in 7ms (compile: 1818µs, proxy.ts: 1658µs, render: 3ms)
+ GET /api/history?limit=20 200 in 109ms (compile: 6ms, proxy.ts: 11ms, render: 92ms)
+ GET /api/vote?chatId=b7cd792b-2381-4522-b9c0-b4fb8027c8ec 200 in 170ms (compile: 6ms, proxy.ts: 9ms, render: 155ms)
+[TIMING] Database query took 49479ms
+[RESULTS] Found 0 rows
+[RESULTS] No results returned - checking why...
+
+[DIAGNOSTIC] Running test queries...
+[DIAGNOSTIC] Total rows in table: 9660647
+
+Data Format:
+
+=== Checking Data Format ===
+
+1. Sample provider types (specialties):
+  - "Hospitalist"
+  - "Pathology"
+  - "Anesthesiology"
+  - "Obstetrics & Gynecology"
+  - "General Surgery"
+  - "Internal Medicine"
+  - "Urology"
+  - "Cardiac Surgery"
+  - "Nurse Practitioner"
+  - "Physician Assistant"
+  - "Licensed Clinical Social Worker"
+  - "Physical Therapist in Private Practice"
+  - "Family Practice"
+  - "Cardiology"
+  - "Optometry"
+  - "Mass Immunizer Roster Biller"
+  - "Pain Management"
+  - "Physical Medicine and Rehabilitation"
+  - "Radiation Oncology"
+  - "Clinic or Group Practice"
+
+2. Sample cities:
+  - "Bethesda"
+  - "Evanston"
+  - "Toledo"
+  - "Cleveland"
+  - "Aurora"
+  - "Quakertown"
+  - "Tulsa"
+  - "Los Angeles"
+  - "Mount Vernon"
+  - "Fort Myers"
+  - "Houston"
+  - "Saint Paul"
+  - "Denver"
+  - "Louisville"
+  - "Hartsville"
+  - "Henderson"
+  - "Danville"
+  - "Evans"
+  - "Kyle"
+  - "Maryville"
+
+3. Providers with 'cardio' in type (case-insensitive):
+Found 3 matches:
+  - "Cardiology"
+  - "Interventional Cardiology"
+  - "Advanced Heart Failure and Transplant Cardiology"
+
+4. Cities with 'chicago' (case-insensitive):
+Found 8 matches:
+  - "Chicago"
+  - "Chicago Heights"
+  - "North Chicago"
+  - "East Chicago"
+  - "South Chicago Heights"
+  - "Chicago Ridge"
+  - "West Chicago"
+  - "Chicago Hts"
+
+5. First 3 rows of data:
+┌─────────┬───────────────────┬───────────────────┬───────────────────────────┐
+│ (index) │ rndrng_prvdr_type │ rndrng_prvdr_city │ rndrng_prvdr_state_abrvtn │
+├─────────┼───────────────────┼───────────────────┼───────────────────────────┤
+│ 0       │ 'Hospitalist'     │ 'Bethesda'        │ 'MD'                      │
+│ 1       │ 'Hospitalist'     │ 'Bethesda'        │ 'MD'                      │
+│ 2       │ 'Hospitalist'     │ 'Bethesda'        │ 'MD'                      │
