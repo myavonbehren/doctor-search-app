@@ -31,7 +31,7 @@ export function AuthForm({
           defaultValue={defaultEmail}
           id="email"
           name="email"
-          placeholder="user@acme.com"
+          placeholder="name@example.com"
           required
           type="email"
         />
