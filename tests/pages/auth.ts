@@ -20,8 +20,8 @@ export class AuthPage {
 
   async register(email: string, password: string) {
     await this.gotoRegister();
-    await this.page.getByPlaceholder("user@acme.com").click();
-    await this.page.getByPlaceholder("user@acme.com").fill(email);
+    await this.page.getByPlaceholder("name@example.com").click();
+    await this.page.getByPlaceholder("name@example.com").fill(email);
     await this.page.getByLabel("Password").click();
     await this.page.getByLabel("Password").fill(password);
     await this.page.getByRole("button", { name: "Sign Up" }).click();
@@ -29,8 +29,8 @@ export class AuthPage {
 
   async login(email: string, password: string) {
     await this.gotoLogin();
-    await this.page.getByPlaceholder("user@acme.com").click();
-    await this.page.getByPlaceholder("user@acme.com").fill(email);
+    await this.page.getByPlaceholder("name@example.com").click();
+    await this.page.getByPlaceholder("name@example.com").fill(email);
     await this.page.getByLabel("Password").click();
     await this.page.getByLabel("Password").fill(password);
     await this.page.getByRole("button", { name: "Sign In" }).click();
