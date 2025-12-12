@@ -7,7 +7,6 @@ import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
 import { useDataStream } from "./data-stream-provider";
 import { DocumentToolResult } from "./document";
-import { DocumentPreview } from "./document-preview";
 import { MessageContent } from "./elements/message";
 import { Response } from "./elements/response";
 import {
@@ -195,14 +194,6 @@ const PurePreviewMessage = ({
                   </div>
                 );
               }
-
-              return (
-                <DocumentPreview
-                  isReadonly={isReadonly}
-                  key={toolCallId}
-                  result={part.output}
-                />
-              );
             }
 
             if (type === "tool-updateDocument") {
@@ -218,16 +209,6 @@ const PurePreviewMessage = ({
                   </div>
                 );
               }
-
-              return (
-                <div className="relative" key={toolCallId}>
-                  <DocumentPreview
-                    args={{ ...part.output, isUpdate: true }}
-                    isReadonly={isReadonly}
-                    result={part.output}
-                  />
-                </div>
-              );
             }
 
             if (type === "tool-requestSuggestions") {

@@ -6,8 +6,6 @@ import type { Transaction } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import type { MutableRefObject } from "react";
 
-import { buildContentFromDocument } from "./functions";
-
 export const documentSchema = new Schema({
   nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
   marks: schema.spec.marks,
@@ -38,12 +36,6 @@ export const handleTransaction = ({
   editorRef.current.updateState(newState);
 
   if (transaction.docChanged && !transaction.getMeta("no-save")) {
-    const updatedContent = buildContentFromDocument(newState.doc);
-
-    if (transaction.getMeta("no-debounce")) {
-      onSaveContent(updatedContent, false);
-    } else {
-      onSaveContent(updatedContent, true);
-    }
+    onSaveContent(newState.doc.toString(), transaction.getMeta("no-debounce"));
   }
 };
